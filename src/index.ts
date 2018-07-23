@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { autoQuadifyCurve, Curve, DerivableFunction, Point2d } from "./functional";
+import { autoQuadifyCurve as ac, Curve, DerivableFunction, Point2d } from "./functional";
 import mix from "./mix";
 
 function bez3(a: number, b: number, c: number, d: number, t: number): number {
@@ -65,7 +65,7 @@ export class CubicBezierCurve implements Curve {
 	}
 }
 
-export class Reparametrized<T> implements Curve {
+export class Reparametrized implements Curve {
 	curve: Curve;
 	fn: DerivableFunction;
 	constructor(c: Curve, fn: DerivableFunction) {
@@ -82,12 +82,48 @@ export class Reparametrized<T> implements Curve {
 	}
 }
 
+export class Circle implements Curve {
+	centerX: number;
+	centerY: number;
+	radius: number;
+	constructor(cx: number, cy: number, radius: number) {
+		this.centerX = cx;
+		this.centerY = cy;
+		this.radius = radius;
+	}
+	eval(t: number) {
+		return {
+			x: this.centerX + this.radius * Math.cos(t),
+			y: this.centerY + this.radius * Math.sin(t)
+		};
+	}
+	derivative(t: number) {
+		return { x: -this.radius * Math.sin(t), y: this.radius * Math.cos(t) };
+	}
+}
+
+export class Slice implements DerivableFunction {
+	start: number;
+	end: number;
+	constructor(start: number, end: number) {
+		this.start = start;
+		this.end = end;
+	}
+	eval(t: number) {
+		return this.start + (this.end - this.start) * t;
+	}
+	derivative(t: number) {
+		return this.end - this.start;
+	}
+}
+
 export function autoQuadify(
 	c: Curve,
 	allowError: number = 0.1,
 	maxSegments: number = 32,
 	maxDistanceTestPoints = 128
 ) {
-	return autoQuadifyCurve(c, allowError, maxSegments, maxDistanceTestPoints);
+	return ac(c, allowError, maxSegments, maxDistanceTestPoints);
 }
-export { autoQuadifyCurve, quadifyCurve } from "./functional";
+export const autoQuadifyCurve = ac;
+export { Derivable, Curve, DerivableFunction, quadifyCurve } from "./functional";
