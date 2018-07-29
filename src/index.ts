@@ -50,14 +50,14 @@ export class CubicBezierCurve implements Curve {
 		this.d = d;
 	}
 
-	eval(t) {
+	eval(t: number) {
 		return {
 			x: bez3(this.a.x, this.b.x, this.c.x, this.d.x, t),
 			y: bez3(this.a.y, this.b.y, this.c.y, this.d.y, t)
 		};
 	}
 
-	derivative(t) {
+	derivative(t: number) {
 		return {
 			x: bezT3(this.a.x, this.b.x, this.c.x, this.d.x, t),
 			y: bezT3(this.a.y, this.b.y, this.c.y, this.d.y, t)
@@ -72,10 +72,10 @@ export class Reparametrized implements Curve {
 		this.curve = c;
 		this.fn = fn;
 	}
-	eval(t) {
+	eval(t: number) {
 		return this.curve.eval(this.fn.eval(t));
 	}
-	derivative(t) {
+	derivative(t: number) {
 		const d = this.curve.derivative(this.fn.eval(t));
 		const dF = this.fn.derivative(t);
 		return { x: d.x * dF, y: d.y * dF };

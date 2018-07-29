@@ -12,10 +12,10 @@
 		"forceConsistentCasingInFileNames": true,
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitReturns": true,
-		"noImplicitAny": false,
-		"noImplicitThis": false,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
 		"noUnusedLocals": false,
-		"strictNullChecks": false,
+		"strictNullChecks": true,
 		"declaration": true,
 		"outDir": "build"
 	},

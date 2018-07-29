@@ -37,7 +37,7 @@ export interface Derivable<T> {
 export type Curve = Derivable<Point2d>;
 export type DerivableFunction = Derivable<number>;
 
-function findIntersection(p1: Point2d, d1: Point2d, d2: Point2d, p2: Point2d): Point2d {
+function findIntersection(p1: Point2d, d1: Point2d, d2: Point2d, p2: Point2d): Point2d | null {
 	const det = d2.x * d1.y - d2.y * d1.x;
 	const numU = (p2.y - p1.y) * d2.x - (p2.x - p1.x) * d2.y;
 	const numV = (p2.y - p1.y) * d1.x - (p2.x - p1.x) * d1.y;
@@ -66,7 +66,7 @@ function findIntersection(p1: Point2d, d1: Point2d, d2: Point2d, p2: Point2d): P
 	};
 }
 
-export function quadifyCurve(c: Curve, n: number = 1): Point2d[] {
+export function quadifyCurve(c: Curve, n: number = 1): Point2d[] | null {
 	if (n <= 0) return [];
 
 	if (n === 1) {
@@ -164,7 +164,12 @@ function estimateError(c: Curve, offPoints: Point2d[], N: number) {
 	return squareDist / N;
 }
 
-export function autoQuadifyCurve(c: Curve, allowError, maxSegments, samples: number): Point2d[] {
+export function autoQuadifyCurve(
+	c: Curve,
+	allowError: number,
+	maxSegments: number,
+	samples: number
+): Point2d[] | null {
 	let results = null;
 	for (let s = 1; s <= maxSegments; s++) {
 		try {
