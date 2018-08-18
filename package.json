@@ -1,6 +1,6 @@
 {
 	"name": "primitive-quadify-off-curves",
-	"version": "0.5.0",
+	"version": "0.5.2",
 	"description": "Quadify a Cubic with only off-curve points",
 	"engineStrict": true,
 	"engines": {
@@ -15,7 +15,7 @@
 		"rimraf": "~2.6.2",
 		"tslint": "^5.10.0",
 		"tsutils": "~2.21.0",
-		"typescript": "^2.9.0"
+		"typescript": "^3.0.0"
 	},
 	"scripts": {
 		"clean": "rimraf coverage build tmp",
