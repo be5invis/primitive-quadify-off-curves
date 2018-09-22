@@ -14,11 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-const lusolve = require("mathjs/lib/function/algebra/solver/lusolve") as (
-	matrix: number[][],
-	results: number[]
-) => number[][];
-
+import math from "./math";
 import { minDistanceToQuad } from "./estimate";
 import mix from "./mix";
 
@@ -127,7 +123,7 @@ export function quadifyCurve(c: Curve, n: number = 1): Point2d[] | null {
 		results[Y(j + 1)] = cy;
 	}
 
-	const rs = lusolve(matrix, results);
+	const rs = math.lusolve(matrix, results) as number[][];
 	const points = [];
 	for (let j = 0; j < n; j++) {
 		points[j] = { x: rs[X(j)][0], y: rs[Y(j)][0] };

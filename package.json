@@ -1,6 +1,6 @@
 {
 	"name": "primitive-quadify-off-curves",
-	"version": "0.5.2",
+	"version": "0.6.0",
 	"description": "Quadify a Cubic with only off-curve points",
 	"engineStrict": true,
 	"engines": {
