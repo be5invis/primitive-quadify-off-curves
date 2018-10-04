@@ -66,6 +66,74 @@ function findIntersection(p1: Point2d, d1: Point2d, d2: Point2d, p2: Point2d): P
 	};
 }
 
+function getMatrix(n: number) {
+	const matrix: number[][] = [];
+	const nArguments = 2 * n;
+
+	for (let j = 0; j < nArguments; j++) {
+		matrix[j] = [];
+		for (let k = 0; k < nArguments; k++) {
+			matrix[j][k] = 0;
+		}
+	}
+	matrix[0][X(0)] = 1;
+	matrix[0][Y(0)] = 0;
+	matrix[2][X(0)] = 0;
+	matrix[2][Y(0)] = 1;
+	matrix[1][X(n - 1)] = 1;
+	matrix[1][Y(n - 1)] = 0;
+	matrix[3][X(n - 1)] = 0;
+	matrix[3][Y(n - 1)] = 1; // Inner knots
+	for (let j = 1; j < n - 1; j++) {
+		const mixBefore = 1 / 8,
+			mixHere = 3 / 4,
+			mixNext = 1 / 8;
+		matrix[X(j + 1)][X(j - 1)] = mixBefore;
+		matrix[X(j + 1)][X(j)] = mixHere;
+		matrix[X(j + 1)][X(j + 1)] = mixNext;
+		matrix[Y(j + 1)][Y(j - 1)] = mixBefore;
+		matrix[Y(j + 1)][Y(j)] = mixHere;
+		matrix[Y(j + 1)][Y(j + 1)] = mixNext;
+	}
+	return matrix;
+}
+
+const invMatrixCache: Map<number, number[][]> = new Map();
+function getInvMatrix(n: number) {
+	const existing = invMatrixCache.get(n);
+	if (existing) return existing;
+
+	const computed = math.inv(getMatrix(n)) as number[][];
+	invMatrixCache.set(n, computed);
+	return computed;
+}
+
+function getResults(c: Curve, n: number) {
+	const nArguments = 2 * n;
+	const results: number[] = [];
+	const start = c.eval(0);
+	const end = c.eval(1);
+	const { x: leftTX, y: leftTY } = c.derivative(0);
+	const { x: rightTX, y: rightTY } = c.derivative(1);
+	const dScale = 1 / (2 * n);
+
+	for (let j = 0; j < nArguments; j++) {
+		results[j] = 0;
+	}
+	results[0] = start.x + leftTX * dScale;
+	results[2] = start.y + leftTY * dScale;
+	results[1] = end.x - rightTX * dScale;
+	results[3] = end.y - rightTY * dScale;
+	// Inner knots
+	for (let j = 1; j < n - 1; j++) {
+		const { x: cx, y: cy } = c.eval((j + 1 / 2) / n);
+		results[X(j + 1)] = cx;
+		results[Y(j + 1)] = cy;
+	}
+
+	return results;
+}
+
 export function quadifyCurve(c: Curve, n: number = 1): Point2d[] | null {
 	if (n <= 0) return [];
 
@@ -75,58 +143,20 @@ export function quadifyCurve(c: Curve, n: number = 1): Point2d[] | null {
 		else return null;
 	}
 
-	const start = c.eval(0);
-	const end = c.eval(1);
-
-	const nArguments = 2 * n;
-	const matrix: number[][] = [];
-	const results: number[] = [];
-
-	for (let j = 0; j < nArguments; j++) {
-		matrix[j] = [];
-		results[j] = 0;
-		for (let k = 0; k < nArguments; k++) {
-			matrix[j][k] = 0;
+	const results = getResults(c, n);
+	const invMatrix = getInvMatrix(n);
+	const rs: number[] = [];
+	for (let j = 0; j < 2 * n; j++) {
+		let x = 0;
+		for (let k = 0; k < 2 * n; k++) {
+			x += invMatrix[j][k] * results[k];
 		}
-	}
-	const { x: leftTX, y: leftTY } = c.derivative(0);
-	const { x: rightTX, y: rightTY } = c.derivative(1);
-	const dScale = 1 / (2 * n);
-
-	matrix[0][X(0)] = 1;
-	matrix[0][Y(0)] = 0;
-	results[0] = start.x + leftTX * dScale;
-	matrix[2][X(0)] = 0;
-	matrix[2][Y(0)] = 1;
-	results[2] = start.y + leftTY * dScale;
-
-	matrix[1][X(n - 1)] = 1;
-	matrix[1][Y(n - 1)] = 0;
-	results[1] = end.x - rightTX * dScale;
-	matrix[3][X(n - 1)] = 0;
-	matrix[3][Y(n - 1)] = 1;
-	results[3] = end.y - rightTY * dScale;
-
-	// Inner knots
-	for (let j = 1; j < n - 1; j++) {
-		const mixBefore = 1 / 8,
-			mixHere = 3 / 4,
-			mixNext = 1 / 8;
-		const { x: cx, y: cy } = c.eval((j + 1 / 2) / n);
-		matrix[X(j + 1)][X(j - 1)] = mixBefore;
-		matrix[X(j + 1)][X(j)] = mixHere;
-		matrix[X(j + 1)][X(j + 1)] = mixNext;
-		results[X(j + 1)] = cx;
-		matrix[Y(j + 1)][Y(j - 1)] = mixBefore;
-		matrix[Y(j + 1)][Y(j)] = mixHere;
-		matrix[Y(j + 1)][Y(j + 1)] = mixNext;
-		results[Y(j + 1)] = cy;
+		rs[j] = x;
 	}
 
-	const rs = math.lusolve(matrix, results) as number[][];
 	const points = [];
 	for (let j = 0; j < n; j++) {
-		points[j] = { x: rs[X(j)][0], y: rs[Y(j)][0] };
+		points[j] = { x: rs[X(j)], y: rs[Y(j)] };
 	}
 	return points;
 }
