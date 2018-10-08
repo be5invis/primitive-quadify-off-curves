@@ -205,7 +205,7 @@ export function autoQuadifyCurve(
 		try {
 			let offPoints = quadifyCurve(c, s);
 			if (!offPoints || !offPoints.length) continue;
-			let err = estimateError(c, offPoints, samples);
+			let err = estimateError(c, offPoints, samples * s);
 			if (err < allowError) return offPoints;
 			results = offPoints;
 		} catch (e) {}
